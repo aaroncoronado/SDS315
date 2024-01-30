@@ -1,0 +1,211 @@
+---
+title: "SDS315_HW2"
+author: "Aaron Coronado, acc5483"
+date: "2024-01-25"
+output:
+  html_document:
+    toc: yes
+    toc_float: yes
+    df_print: paged
+  pdf_document: default
+---
+
+[GitHub Repo Link]()
+
+```{r Setup, message = F, warning = F, echo = F}
+library(tidyverse)
+library(ggplot2)
+library(dplyr)
+library(kableExtra)
+profs <- read_csv("profs.csv")
+bikeshare <- read_csv("bikeshare.csv")
+capmetro_UT <- read_csv("capmetro_UT.csv")
+billboard <- read_csv("billboard.csv")
+```
+
+# **Problem 1: Beauty, or not, in the classroom**
+
+## **Part 1.A**
+
+```{r Q1 Part A, message = F, warning = F, echo = F}
+ggplot(profs) +
+  geom_histogram(aes(x = eval)) +
+  xlim(1, 5) +
+  labs(title = "Distribution of Instructor Evaluation Scores", x = "Evaluation Score", y = "Frequency")
+```
+
+This figure displays the distribution of evaluations scores received by UT course instructors. Notably, there are no evaluation scores below a 2. This may be reflective of how seriously the university takes course evaluations in ensuring quality performance from its teaching staff.
+
+## **Part 1.B**
+
+```{r Q1 Part B, message = F, warning = F, echo = F}
+profs_mod = profs %>%
+  mutate(native = recode(native, "no" = "Non-Native Speaker", "yes" = "Native Speaker"))
+ggplot(profs_mod) +
+  geom_boxplot(aes(x = eval)) +
+  xlim(1, 5) +
+  labs(title = "Distribution of Instructor Evaluation Scores", x = "Evaluation Score") +
+  facet_wrap(~native)
+```
+
+This figure displays the distribution of evaluations scores received by UT course instructors, separated by native and non-native English speakers. The figure illustrates that instructors that are native English speakers receive, on average, higher evaluation scores than their colleagues that are not native English speakers. This discrepancy could reflect student difficulty with comprehending non-native English accents and/or possibly prejudice.
+
+## **Part 1.C**
+
+```{r Q1 Part C, message = F, warning = F, echo = F}
+profs_gender = profs %>%
+  mutate(gender = recode(gender, "female" = "Female", "male" = "Male"))
+ggplot(profs_gender) +
+  geom_boxplot(aes(x = eval)) +
+  xlim(1, 5) +
+  labs(title = "Distribution of Instructor Evaluation Scores by Gender", x = "Evaluation Score") +
+  facet_wrap(~gender)
+```
+
+This figure displays the distribution of evaluations scores received by UT course instructors, separated by gender. The figure illustrates that male instructors, on average, receive higher evaluation scores than their female counterparts. However, male instructors did also receive a slightly larger range of evaluation scores. One might argue that the distributions demonstrate that men are better instructors, however, it could also be argue that there exist a gender bias against female instructors.
+
+## **Part 1.D**
+
+```{r Q1 Part D, message = F, warning = F, echo = F}
+ggplot(profs, aes(x = beauty, y = eval)) +
+  geom_point() +
+  labs(title = "Relationship Between Instructor Attractiveness and Evaluation Scores", x = "Attractiveness Rating", y = "Evaluation Score")
+```
+
+This figure displays the relationship the attractiveness rating an instructor received and the evaluation score that they received. According to the figure, there does not seem to be a strong or even medium correlation between attractiveness rating an instructor received and the evaluation score they received.
+
+# **Problem 2: Biking sharing**
+
+## **Plot 2.A**
+
+```{r Q2 Plot A, message = F, warning = F, echo = F}
+rent_by_hr = bikeshare %>%
+  group_by(hr) %>%
+  summarize(avg_hr_rent = round(mean(total),2))
+ggplot(rent_by_hr) +
+  geom_line(aes(x = hr, y = avg_hr_rent)) +
+  labs(title = "Average Number of Bike Rentals Across All Hours of the Day", x = "Hours of the Day", y = "Average Number of Bike Rentals")
+```
+
+The figure displays the average number of bike rentals across all hours of the day. The figure has two notable peaks. The first is at about 8am when people are usually going to work, and the second is at about 5pm when people are usually leaving work. There is also a decent amount of activity in between the two peaks, however, there are lower levels of activity at times when there is less light out.
+
+## **Plot 2.B**
+
+```{r Q2 Plot B, message = F, warning = F, echo = F}
+rent_by_hr_wd = bikeshare %>%
+  group_by(hr, workingday) %>%
+  summarize(avg_hr_rent = round(mean(total),2))
+ggplot(rent_by_hr_wd) +
+  geom_line(aes(x = hr, y = avg_hr_rent)) +
+  labs(title = "Average Hourly Bike Rentals Across All Hours of the Day", x = "Time (24hr)", y = "Average Number of Bike Rentals") +
+  facet_wrap(~workingday)
+```
+
+The figure displays the average number of bike rentals across all hours of the day, separated into working days and weekends and holidays. In the figure, "0" represents the weekends and holidays and "1" represents the days in which people go to work. In the "1" graph, there are two notable peaks, as in the prior question, illustrating a spike in rentals when people are going to and leaving work. In the "0" graph, there's a plateau in the middle of the day and afters when people are likely most active on their off days.
+
+## **Plot 2.C**
+
+```{r Q2 Plot C, message = F, warning = F, echo = F}
+nine_avg_rs = bikeshare %>%
+  filter(hr == 9) %>%
+  group_by(weathersit, workingday) %>%
+  summarize(avg_rs = round(mean(total),2))
+ggplot(nine_avg_rs) +
+  geom_col(aes(x = weathersit, y = avg_rs)) +
+  labs(title = "Average Ridership at 9AM During Various Weather Situations", x = "Weather Situation code", y = "Average Ridership") +
+  facet_wrap(~workingday)
+```
+
+| Weather Situation Code | Description                                                                             |
+|------------------------|-----------------------------------------------------------------------------------------|
+| 1                      | Clear, Few clouds, Partly cloudy                                                        |
+| 2                      | Mist + Cloudy, Mist + Broken clouds, Mist + Few clouds, Mist                            |
+| 3                      | Light Snow, Light Rain + Thunderstorm + Scattered clouds, Light Rain + Scattered clouds |
+| 4                      | Heavy Rain + Ice Pallets + Thunderstorm + Mist, Snow + Fog                              |
+
+The figure displays the average ridership at 9am during various weather situations,separated into working days and weekends and holidays. In the figure, "0" represents the weekends and holidays and "1" represents the days in which people go to work. According to the figure, nobody rent a bike during a code "4" weather situation, however, in the case of less intense inclement weather, more people are likely to rent bikes on working days than on weekends and holidays.
+
+# **Problem 3: Capital Metro UT Ridership**
+
+## **Part 3.1**
+
+```{r Q3 Part 1, message = F, warning = F, echo = F}
+capmetro_UT = mutate(capmetro_UT,
+  day_of_week = factor(day_of_week,
+    levels=c("Mon", "Tue", "Wed","Thu", "Fri", "Sat", "Sun")),
+  month = factor(month,
+    levels=c("Sep", "Oct","Nov")))
+avg_board_by = capmetro_UT %>%
+  group_by(hour_of_day, day_of_week, month) %>%
+  summarize(avg_board = round(mean(boarding), 2))
+ggplot(avg_board_by, aes(x = hour_of_day, y = avg_board)) +
+  geom_line(aes(color = month)) +
+  labs(title = "Capital Metro Ridership by Time", x = "Time (24hr)", y = "Average Number of Boardings") +
+  guides(color = guide_legend(title = "Month")) +
+  facet_wrap(~day_of_week)
+```
+
+This figure displays Capital Metro UT ridership by time (24hr), separated by day of the week and month of the year. The figure illustrates that there is significantly more ridership on weekdays than weekends. Additionally, the month of the year might have an effect on ridership in that hotter months have, for the most part, greater ridership than cooler month. This makes sense as people are likely don't want to walk in the September heat.
+
+## **Part 3.2**
+
+```{r Q3 Part 2, message = F, warning = F, echo = F}
+ggplot(capmetro_UT) +
+  geom_point(aes(x = temperature, y = boarding, color = weekend)) +
+  labs(title = "Capital Metro Ridership by Temperature, Faceted by Time (24hr)", x = "Temperature (F)", y = "Average Number of Boardings") +
+  facet_wrap(~hour_of_day)
+```
+
+This figure displays Capital Metro UT ridership by temperature (F), separated by hour of the day and weekday vs. weekend. In earlier hours, there is less ridership than during "working hours" and at later hours. Additionally, ridership seems more impacted by time than by temperature as the points are concentrated into relatively uniform shapes.
+
+# **Problem 4: Wrangling the Billboard Top 100**
+
+## **Part 4.A**
+
+```{r Q4 Part A, message = F, warning = F, echo = F}
+top_ten <- billboard %>%
+  group_by(performer, song) %>%
+  summarize(count = max(weeks_on_chart)) %>%
+  arrange(desc(count)) %>%
+  head(10)
+colnames(top_ten) <- c("Performer", "Song", "Count")
+kable_styling(kbl(top_ten))
+```
+
+This figure displays a table of the top 10 most popular songs since 1958 which is measured by the total number of weeks that a song spent on the Billboard Top 100. The top song is "Radioactive" by Imagine Dragons
+
+## **Part 4.B**
+
+```{r Q4 Part B, message = F, warning = F, echo = F}
+count_songs <- billboard %>%
+  filter(year != 1958 & year != 2021) %>%
+  group_by(year, performer, song) %>%
+  summarize(count = n())
+music_div <- count_songs %>%
+  group_by(year) %>%
+  summarize(unique = n_distinct(song))
+ggplot(music_div) +
+  geom_line(aes(x = year, y = unique)) +
+  labs(title = "Unique Songs to Appear on the Billboard Top 100 by Year", x = "Year", y = "Number of Unique Songs")
+```
+
+The figure displays the number of unique songs that appeared in the Billboard Top 100 in a given year. The figure illustrates a peak of unique songs in the 60s then a progress decline which is then followed by a quick rise starting in the 2000s.
+
+## **Part 4.C**
+
+```{r Q4 Part C, message = F, warning = F, echo = F}
+ten_wk_hit <- billboard %>%
+  group_by(performer, song) %>%
+  summarize(wk_cnt = n()) %>%
+  filter(wk_cnt >= 10)
+thirty <- ten_wk_hit %>%
+  group_by(performer) %>%
+  summarize(ten_wk_hit_cnt = n_distinct(song)) %>%
+  filter(ten_wk_hit_cnt >= 30)
+ggplot(thirty) +
+  geom_bar(aes(x = performer, y = ten_wk_hit_cnt), stat = "identity") +
+  labs(title = "Artists with 30 or More Songs That Were Ten-Week Hits", x = "Performer", y = "Number of Ten-Week Hits") +
+  coord_flip()
+```
+
+The figure displays all the artists since 1958 who have had at least 30 songs there were ten-week hits. According to the figure, Elton John has the greatest number of ten-week hits. This artistic accomplishment is also notably dominated by men with only two female artists listed: Taylor Swift and Madonna.
